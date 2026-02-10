@@ -1,2 +1,2 @@
-add_subdirectory(sample_library)
+add_subdirectory(vector_library)
 add_subdirectory(application)

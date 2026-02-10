@@ -32,7 +32,7 @@ set_tests_properties(cli.version_matches PROPERTIES PASS_REGULAR_EXPRESSION "${P
 add_executable(tests tests.cpp)
 target_link_libraries(
   tests
-  PRIVATE sample_library
+  PRIVATE vector_library
           myproject::myproject_warnings
           myproject::myproject_options
           Catch2::Catch2WithMain)
