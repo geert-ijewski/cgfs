@@ -10,7 +10,6 @@ target_link_system_libraries(
   PRIVATE
           CLI11::CLI11
           fmt::fmt
-          spdlog::spdlog
           )
 
 target_include_directories(intro PRIVATE "${CMAKE_BINARY_DIR}/configured_files/include")

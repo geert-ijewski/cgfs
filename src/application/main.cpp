@@ -1,9 +1,9 @@
 #include <cstdlib>
 #include <exception>
+#include <iostream>
 #include <fmt/base.h>
 #include <fmt/format.h>
 
-#include <spdlog/spdlog.h>
 #include <optional>
 
 
@@ -37,6 +37,6 @@ int main(int argc, const char **argv)
     fmt::print("hello world");
 
   } catch (const std::exception &e) {
-    spdlog::error("Unhandled exception in main: {}", e.what());
+    std::cerr << "Unhandled exception in main: {}" << e.what();
   }
 }
