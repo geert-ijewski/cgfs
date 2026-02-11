@@ -106,16 +106,29 @@ endif()
 
 include(cmake/PackageProject.cmake)
 
-# Add other targets that you want installed here, by default we just package the one executable
-# we know we want to ship
-myproject_package_project(
-  TARGETS
-  intro
-  myproject_options
-  myproject_warnings
-  # FIXME: this does not work! CK
-  # PRIVATE_DEPENDENCIES_CONFIGURED project_options project_warnings
-)
+# Add other targets that you want installed here
+if (WIN32)
+  myproject_package_project(
+      TARGETS
+      windows_application
+      myproject_options
+      myproject_warnings
+      # FIXME: this does not work! CK
+      # PRIVATE_DEPENDENCIES_CONFIGURED project_options project_warnings
+    )
+elseif (UNIX)
+  myproject_package_project(
+      TARGETS
+      unix_application
+      myproject_options
+      myproject_warnings
+      # FIXME: this does not work! CK
+      # PRIVATE_DEPENDENCIES_CONFIGURED project_options project_warnings
+    )
+else()
+  message(STATUS "Platform ${CMAKE_SYSTEM_NAME} is not explicitly supported; skipping windows/unix subdirectories.")
+endif()
+
 
 # Experience shows that explicit package naming can help make it easier to sort
 # out potential ABI related issues before they start, while helping you
