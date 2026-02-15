@@ -55,6 +55,7 @@ add_library(myproject::myproject_warnings ALIAS myproject_warnings)
 #add_library(myproject::myproject_options INTERFACE IMPORTED)
 #add_library(myproject::myproject_warnings INTERFACE IMPORTED)
 
+
 # configure files based on CMake configuration options
 add_subdirectory(configured_files)
 
@@ -107,27 +108,15 @@ endif()
 include(cmake/PackageProject.cmake)
 
 # Add other targets that you want installed here
-if (WIN32)
-  myproject_package_project(
-      TARGETS
-      windows_application
-      myproject_options
-      myproject_warnings
-      # FIXME: this does not work! CK
-      # PRIVATE_DEPENDENCIES_CONFIGURED project_options project_warnings
-    )
-elseif (UNIX)
-  myproject_package_project(
-      TARGETS
-      unix_application
-      myproject_options
-      myproject_warnings
-      # FIXME: this does not work! CK
-      # PRIVATE_DEPENDENCIES_CONFIGURED project_options project_warnings
-    )
-else()
-  message(STATUS "Platform ${CMAKE_SYSTEM_NAME} is not explicitly supported; skipping windows/unix subdirectories.")
-endif()
+myproject_package_project(
+    TARGETS
+    application
+    myproject_options
+    myproject_warnings
+    # FIXME: this does not work! CK
+    # PRIVATE_DEPENDENCIES_CONFIGURED project_options project_warnings
+ )
+
 
 
 # Experience shows that explicit package naming can help make it easier to sort
