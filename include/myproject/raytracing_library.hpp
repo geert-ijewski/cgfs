@@ -21,6 +21,8 @@ struct RaytracingContext
 {
   std::vector<SceneObject> objects;
   PutPixel putPixelFct = nullptr;
+  int16_t height = 0;
+  int16_t width = 0;
 };
 
 void raytrace(const RaytracingContext &ctx);
