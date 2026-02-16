@@ -3,6 +3,8 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
+#include <myproject/raytracing_library.hpp>
+
 
 /* We will use this renderer to draw into this window every frame. */
 static SDL_Window *window = nullptr; //NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
@@ -36,6 +38,13 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
 
   last_time = SDL_GetTicks();
 
+  const auto& raytracingCtx = new RaytracingContext();
+  raytracingCtx->putPixelFct = [](int16_t x, int16_t y, Color color) { //NOLINT(bugprone-easily-swappable-parameters)
+    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, SDL_ALPHA_OPAQUE);
+    SDL_RenderPoint(renderer, x, y);
+  };
+  *appstate = (void *)raytracingCtx;// cppcheck-suppress[cstyleCast]
+
   return SDL_APP_CONTINUE; /* carry on with the program! */
 }
 
@@ -60,14 +69,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
   /* as you can see from this, rendering draws over whatever was drawn before it. */
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE); /* black, full alpha */
   SDL_RenderClear(renderer); /* start with a blank canvas. */
-  const int RED = 255;
-  const int GREEN = 255;
-  const int BLUE = 255;
-  SDL_SetRenderDrawColor(renderer, RED, GREEN, BLUE, SDL_ALPHA_OPAQUE); /* white, full alpha */
-  SDL_RenderPoint(renderer, 100.F, 100.F);
 
-  /* You can also draw single points with SDL_RenderPoint(), but it's
-     cheaper (sometimes significantly so) to do them all at once. */
+  raytrace(*reinterpret_cast<RaytracingContext *>(appstate)); //NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
   SDL_RenderPresent(renderer); /* put it all on the screen! */
 

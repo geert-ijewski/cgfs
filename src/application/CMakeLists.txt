@@ -6,6 +6,7 @@ target_link_libraries(
   application
   PRIVATE OpenGL::GL
           SDL3::SDL3
+          raytracing_library
           myproject::myproject_options
           myproject::myproject_warnings)
 

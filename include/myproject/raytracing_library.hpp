@@ -1,6 +1,9 @@
 #ifndef RAYTRACING_LIBRARY_HPP
 #define RAYTRACING_LIBRARY_HPP
 
+#include <vector>
+#include <myproject/vector_library.hpp>
+
 struct Color
 {
   uint8_t r, g, b;
@@ -13,11 +16,13 @@ struct SceneObject
   Color color;
 };
 
-typedef int (*PutPixel)(int16_t x, int16_t y, Color color);
+typedef void (*PutPixel)(int16_t x, int16_t y, Color color);
 struct RaytracingContext
 {
   std::vector<SceneObject> objects;
-  PutPixel putPixelFct;
+  PutPixel putPixelFct = nullptr;
 };
+
+void raytrace(const RaytracingContext &ctx);
 
 #endif// !RAYTRACING_LIBRARY_HPP
