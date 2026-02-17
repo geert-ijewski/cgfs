@@ -162,7 +162,7 @@ jobs:
 
       - name: SDL Dependencies
         if: runner.os == 'Linux'
-        run: apt-get install libwayland-dev
+        run: sudo apt-get install libwayland-dev
 
       - name: Configure CMake
         run: |
