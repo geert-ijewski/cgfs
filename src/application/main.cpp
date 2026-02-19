@@ -43,6 +43,10 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, SDL_ALPHA_OPAQUE);
     SDL_RenderPoint(renderer, x, y);
   };
+
+  const int POS = 100;
+  const int COLOR = 128;
+  raytracingCtx->objects.emplace_back(Vector3d(POS, POS, 0), Color(COLOR, COLOR, 0));
   raytracingCtx->height = WINDOW_HEIGHT;
   raytracingCtx->width = WINDOW_WIDTH;
   *appstate = (void *)raytracingCtx;// cppcheck-suppress[cstyleCast]
