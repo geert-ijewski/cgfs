@@ -11,8 +11,8 @@ static SDL_Window *window = nullptr; //NOLINT(cppcoreguidelines-avoid-non-const-
 static SDL_Renderer *renderer = nullptr;// NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 static Uint64 last_time = 0;// NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-const int WINDOW_WIDTH = 640;
-const int WINDOW_HEIGHT = 480;
+const int WINDOW_WIDTH = 1024;
+const int WINDOW_HEIGHT = 860;
 
 
 /* This function runs once at startup. */
@@ -30,7 +30,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
   }
 
   if (!SDL_CreateWindowAndRenderer(
-        "examples/renderer/points", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE, &window, &renderer)) {
+        "computer graphics from scratch", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE, &window, &renderer)) {
     SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
     return SDL_APP_FAILURE;
   }
@@ -39,16 +39,20 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
   last_time = SDL_GetTicks();
 
   const auto& raytracingCtx = new RaytracingContext();
-  raytracingCtx->putPixelFct = [](int16_t x, int16_t y, Color color) { //NOLINT(bugprone-easily-swappable-parameters)
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, SDL_ALPHA_OPAQUE);
-    SDL_RenderPoint(renderer, x, y);
-  };
 
-  const int POS = 100;
+  const int POS = 0;
   const int COLOR = 128;
-  raytracingCtx->objects.emplace_back(Vector3d(POS, POS, 0), Color(COLOR, COLOR, 0));
-  raytracingCtx->height = WINDOW_HEIGHT;
-  raytracingCtx->width = WINDOW_WIDTH;
+  raytracingCtx->objects.emplace_back(Vector3d(POS, POS, 0), 1.F, Color(COLOR, COLOR, 0));
+  const int16_t CANVAS_HEIGHT = 860;
+  const int16_t CANVAS_WIDTH = 1024;
+  raytracingCtx->height = CANVAS_HEIGHT;
+  raytracingCtx->width = CANVAS_WIDTH;
+  raytracingCtx->putPixelFct = [](int16_t x, int16_t y, Color color) {// NOLINT(bugprone-easily-swappable-parameters)
+    const auto s_x = (int16_t)((CANVAS_WIDTH / (int16_t)2) + x);
+    const auto s_y = (int16_t)((CANVAS_HEIGHT / (int16_t)2) + y);
+    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, SDL_ALPHA_OPAQUE);
+    SDL_RenderPoint(renderer, s_x, s_y);
+  };
   *appstate = (void *)raytracingCtx;// cppcheck-suppress[cstyleCast]
 
   return SDL_APP_CONTINUE; /* carry on with the program! */

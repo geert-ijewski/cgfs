@@ -13,8 +13,9 @@ struct Color
 struct SceneObject
 {
   Vector3d pos;
+  float radius;
   Color color;
-  SceneObject(Vector3d pos_, Color color_) : pos(pos_), color(color_) {}
+  SceneObject(Vector3d pos_, float radius_, Color color_) : pos(pos_), radius(radius_), color(color_) {}
 };
 
 typedef void (*PutPixel)(int16_t x, int16_t y, Color color);
