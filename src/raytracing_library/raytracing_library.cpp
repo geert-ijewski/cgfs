@@ -16,8 +16,9 @@ void raytrace(const RaytracingContext& ctx) {
   const auto ORIG = Vector3d(0.F, 0.F, 0.F);
   for (auto y = (int16_t)(- ctx.height / 2); y < ctx.height / 2; y++) {// NOLINT(readability-identifier-length)
     for (auto x = (int16_t)(- ctx.width / 2); x < ctx.width / 2; x++) {// NOLINT(readability-identifier-length)
-      const auto v_x = (double)x * (V_h / ctx.height);
-      const auto v_y = (double)y * (V_w / ctx.width);
+      // map canvas (pixel) coordinates to viewport coordinates
+      const auto v_x = (double)x * ((double)V_w / (double)ctx.width);
+      const auto v_y = (double)y * ((double)V_h / (double)ctx.height);
       const auto DIR = Vector3d(v_x, v_y, 1.F);
 
       const auto t_min = 1.F;
@@ -41,8 +42,8 @@ void raytrace(const RaytracingContext& ctx) {
       if (closes_sphere == nullptr) {
         continue;
       }
-      //SDL_Log("Found %s at %d:%d", closes_sphere->name.c_str(), x, y);
-      ctx.putPixelFct(v_x, v_y, closes_sphere->color); 
+      // draw using canvas pixel coordinates (centered)
+      ctx.putPixelFct((double)x, (double)-y, closes_sphere->color);
     }
   }
 }
@@ -58,8 +59,7 @@ std::pair<double, double>
   const auto c = CO.dot(CO) - (r * r);// NOLINT(readability-identifier-length)
 
   const auto discriminant = (b * b) - (4 * a * c);
-  if (discriminant < 0) { return { INFINITY, INFINITY };
-  }
+  if (discriminant < 0) { return { INFINITY, INFINITY }; }
 
   return { (-b + sqrt(discriminant)) / 2 * a, (-b - sqrt(discriminant)) / 2 * a };
 }
