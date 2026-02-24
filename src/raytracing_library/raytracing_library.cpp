@@ -1,22 +1,66 @@
+// NOLINTBEGIN(cppcoreguidelines-pro-type-vararg,hicpp-vararg)
 #include <cstdint>
+#include <cmath>
+#include <utility>
+//#include <SDL3/SDL_log.h>
+#include <myproject/vector_library.hpp>
 #include <myproject/raytracing_library.hpp>
 
+std::pair<double, double>
+  intersect_ray_sphere(const Vector3d &ORIG, const Vector3d &DIR, const SceneObject &sphere);
 
 void raytrace(const RaytracingContext& ctx) { 
-  // viewport definition, ich machs erstmal genau so gross wie den canvas
-  const int16_t V_h = ctx.height;
-  const int16_t V_w = ctx.width;
+  const auto V_h = 1;
+  const auto V_w = 1;
 
-  for (int16_t y = 0; y < ctx.height; y++) { // NOLINT(readability-identifier-length)
-    for (int16_t x = 0; x < ctx.width; x++) {// NOLINT(readability-identifier-length)
-      const auto v_x = (int16_t)(x * (int16_t)(V_h / ctx.height));
-      const auto v_y = (int16_t)(y * (int16_t)(V_w / ctx.width));
+  const auto ORIG = Vector3d(0.F, 0.F, 0.F);
+  for (auto y = (int16_t)(- ctx.height / 2); y < ctx.height / 2; y++) {// NOLINT(readability-identifier-length)
+    for (auto x = (int16_t)(- ctx.width / 2); x < ctx.width / 2; x++) {// NOLINT(readability-identifier-length)
+      const auto v_x = (double)x * (V_h / ctx.height);
+      const auto v_y = (double)y * (V_w / ctx.width);
+      const auto DIR = Vector3d(v_x, v_y, 1.F);
 
-      for (const auto& object : ctx.objects) { 
-        if (object.pos.x == v_x && object.pos.y == v_y) { 
-            ctx.putPixelFct(v_x, v_y, object.color); 
+      const auto t_min = 1.F;
+      const auto t_max = (double)INFINITY;
+
+      auto closest_t = (double)INFINITY;
+      const SceneObject *closes_sphere = nullptr;
+      for (const auto &object : ctx.objects) {
+        const auto [intersection1, intersection2] = intersect_ray_sphere(ORIG, DIR, object);
+        if (intersection1 > t_min && intersection1 < t_max && intersection1 < closest_t) {
+          closest_t = intersection1;
+          closes_sphere = &object;
+        }
+        if (intersection2 > t_min && intersection2 < t_max && intersection2 < closest_t) {
+          closest_t = intersection2;
+          closes_sphere = &object;
         }
       }
+
+      // empty space
+      if (closes_sphere == nullptr) {
+        continue;
+      }
+      //SDL_Log("Found %s at %d:%d", closes_sphere->name.c_str(), x, y);
+      ctx.putPixelFct(v_x, v_y, closes_sphere->color); 
     }
   }
 }
+
+std::pair<double, double>
+  intersect_ray_sphere(const Vector3d &ORIG, const Vector3d &DIR, const SceneObject &sphere) //NOLINT(bugprone-easily-swappable-parameters)
+{
+  const auto r = sphere.radius;// NOLINT(readability-identifier-length)
+  const auto CO = ORIG - sphere.pos;// NOLINT(readability-identifier-length)
+
+  const auto a = DIR.dot(DIR);// NOLINT(readability-identifier-length)
+  const auto b = 2 * CO.dot(DIR);// NOLINT(readability-identifier-length)
+  const auto c = CO.dot(CO) - (r * r);// NOLINT(readability-identifier-length)
+
+  const auto discriminant = (b * b) - (4 * a * c);
+  if (discriminant < 0) { return { INFINITY, INFINITY };
+  }
+
+  return { (-b + sqrt(discriminant)) / 2 * a, (-b - sqrt(discriminant)) / 2 * a };
+}
+// NOLINTEND(cppcoreguidelines-pro-type-vararg,hicpp-vararg)

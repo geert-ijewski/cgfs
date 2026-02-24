@@ -11,8 +11,8 @@ static SDL_Window *window = nullptr; //NOLINT(cppcoreguidelines-avoid-non-const-
 static SDL_Renderer *renderer = nullptr;// NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 static Uint64 last_time = 0;// NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-const int WINDOW_WIDTH = 1024;
-const int WINDOW_HEIGHT = 860;
+const int WINDOW_WIDTH = 600;
+const int WINDOW_HEIGHT = 600;
 
 
 /* This function runs once at startup. */
@@ -40,18 +40,19 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
 
   const auto& raytracingCtx = new RaytracingContext();
 
-  const int POS = 0;
   const int COLOR = 128;
-  raytracingCtx->objects.emplace_back(Vector3d(POS, POS, 0), 1.F, Color(COLOR, COLOR, 0));
-  const int16_t CANVAS_HEIGHT = 860;
-  const int16_t CANVAS_WIDTH = 1024;
+  raytracingCtx->objects.emplace_back(Vector3d(0, -1, 3), 1.F, Color(COLOR, 0, 0), std::string("rot"));
+  raytracingCtx->objects.emplace_back(Vector3d(2, 0, 4), 1.F, Color(0, 0, COLOR), std::string("blau"));
+  raytracingCtx->objects.emplace_back(Vector3d(-2, 0, 4), 1.F, Color(0, COLOR, 0), std::string("gruen"));
+  const int16_t CANVAS_HEIGHT = WINDOW_HEIGHT;
+  const int16_t CANVAS_WIDTH = WINDOW_WIDTH;
   raytracingCtx->height = CANVAS_HEIGHT;
   raytracingCtx->width = CANVAS_WIDTH;
-  raytracingCtx->putPixelFct = [](int16_t x, int16_t y, Color color) {// NOLINT(bugprone-easily-swappable-parameters)
-    const auto s_x = (int16_t)((CANVAS_WIDTH / (int16_t)2) + x);
-    const auto s_y = (int16_t)((CANVAS_HEIGHT / (int16_t)2) + y);
+  raytracingCtx->putPixelFct = [](double x, double y, Color color) {// NOLINT(bugprone-easily-swappable-parameters)
+    const auto s_x = (CANVAS_WIDTH / 2.F) + x;
+    const auto s_y = (CANVAS_HEIGHT / 2.F) + y;
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, SDL_ALPHA_OPAQUE);
-    SDL_RenderPoint(renderer, s_x, s_y);
+    SDL_RenderPoint(renderer, (float)s_x, (float)s_y);
   };
   *appstate = (void *)raytracingCtx;// cppcheck-suppress[cstyleCast]
 

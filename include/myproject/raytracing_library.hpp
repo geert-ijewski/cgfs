@@ -2,6 +2,7 @@
 #define RAYTRACING_LIBRARY_HPP
 
 #include <vector>
+#include <string>
 #include <myproject/vector_library.hpp>
 
 struct Color
@@ -13,18 +14,19 @@ struct Color
 struct SceneObject
 {
   Vector3d pos;
-  float radius;
+  double radius;
   Color color;
-  SceneObject(Vector3d pos_, float radius_, Color color_) : pos(pos_), radius(radius_), color(color_) {}
+  std::string name;
+  SceneObject(Vector3d pos_, double radius_, Color color_, std::string name_) : pos(pos_), radius(radius_), color(color_), name(name_) {}
 };
 
-typedef void (*PutPixel)(int16_t x, int16_t y, Color color);
+typedef void (*PutPixel)(double x, double y, Color color);
 struct RaytracingContext
 {
   std::vector<SceneObject> objects;
   PutPixel putPixelFct = nullptr;
-  int16_t height = 0;
-  int16_t width = 0;
+  double height = 0;
+  double width = 0;
 };
 
 void raytrace(const RaytracingContext &ctx);
