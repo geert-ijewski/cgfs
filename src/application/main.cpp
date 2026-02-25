@@ -54,6 +54,11 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, SDL_ALPHA_OPAQUE);
     SDL_RenderPoint(renderer, (float)s_x, (float)s_y);
   };
+  const auto INTENSITY1 = 0.2F;
+  const auto INTENSITY2 = 0.6F;
+  raytracingCtx->lights.emplace_back(AmbientLight(INTENSITY1));
+  raytracingCtx->lights.emplace_back(PointLight(INTENSITY2, Vector3d(2, 1, 0)));
+  raytracingCtx->lights.emplace_back(DirectionalLight(INTENSITY1, Vector3d(1, 4, 4)));
   *appstate = (void *)raytracingCtx;// cppcheck-suppress[cstyleCast]
 
   return SDL_APP_CONTINUE; /* carry on with the program! */
