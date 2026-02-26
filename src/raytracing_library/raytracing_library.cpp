@@ -36,7 +36,7 @@ void raytrace(const RaytracingContext& ctx) {
       const auto v_x = (double)x * ((double)V_w / (double)ctx.width);
       const auto v_y = (double)y * ((double)V_h / (double)ctx.height);
       // Der Punkt den wir gerade anschauen wollen
-      const auto DIR = Vector3d(v_x, v_y, 1.F);
+      const auto DIR = Vector3d(v_x, v_y, 1.F).norm();
 
       const auto t_min = 1.F;
       const auto t_max = (double)INFINITY;
