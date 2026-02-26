@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 #include <variant>
+#include <cstdint>
+#include <cmath>
 #include <myproject/vector_library.hpp>
 
 struct Color
@@ -11,7 +13,26 @@ struct Color
   uint8_t r, g, b;
   Color(uint8_t r, uint8_t g, uint8_t b) : r(r), g(g), b(b) {}
 
-  Color operator*(const double &intensity) const { return Color((uint8_t)(r * intensity), (uint8_t)(g * intensity), (uint8_t)(b * intensity)); }
+  /**
+  * Multiply each channel (r,g,b) by the given intensity (double).
+  * Clamp the computed double value into the [0, 255] range.
+  * @param intensity how much more light this channel should have
+  */
+  Color operator*(const double &intensity) const
+  {
+    auto clamp_to_uint8 = [](double v) -> uint8_t {
+      if (std::isnan(v)) v = 0.0;
+      if (v < 0.0) v = 0.0;
+      if (v > 255.0) v = 255.0;
+      return static_cast<uint8_t>(std::lround(v));
+    };
+
+    double rr = static_cast<double>(r) * intensity;
+    double gg = static_cast<double>(g) * intensity;
+    double bb = static_cast<double>(b) * intensity;
+
+    return Color(clamp_to_uint8(rr), clamp_to_uint8(gg), clamp_to_uint8(bb));
+  }
 };
 
 struct SceneObject
