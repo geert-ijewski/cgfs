@@ -7,10 +7,17 @@
 #include <myproject/vector_library.hpp>
 #include <myproject/raytracing_library.hpp>
 
-std::pair<double, double>
-  intersect_ray_sphere(const Vector3d &ORIG, const Vector3d &DIR, const SceneObject &sphere);
 
 // NOLINTBEGIN(readability-identifier-length,bugprone-easily-swappable-parameters)
+
+std::pair<double, double> intersect_ray_sphere(const Vector3d &ORIG, const Vector3d &DIR, const SceneObject &sphere);
+
+std::pair<const SceneObject *, double> closest_intersection(const Vector3d &O,
+  const Vector3d &D,
+  const std::vector<SceneObject> &objects,
+  const double t_min,
+  const double t_max);
+
 /**
  * Rechnet fuer jeden Punkt P die Lichtverhaeltnisse aus
  * @param lights Alle Lichter der Szene
@@ -18,11 +25,13 @@ std::pair<double, double>
  * @param N vector abgehend von der oberflaeche des Objekts
  * @param V der vektor in die kamera, also wie stark das Licht in unser Auge rein reflektiert
  * @param specular Wie glaenzend das Objekt ist
+ * @param objects Alle Objekte um zu schauen ob dieser Punkt im Schatten eines Objekts liegt
  */
 double compute_lighting(const std::vector<Light> &lights,
   const Vector3d &P,
   const Vector3d &N, const Vector3d &V,
-  const double specular);
+  const double specular,
+  const std::vector<SceneObject> &objects);
 
 
 void raytrace(const RaytracingContext& ctx) { 
@@ -41,30 +50,18 @@ void raytrace(const RaytracingContext& ctx) {
       const auto t_min = 1.F;
       const auto t_max = (double)INFINITY;
 
-      auto closest_t = (double)INFINITY;
-      const SceneObject *closes_sphere = nullptr;
-      for (const auto &object : ctx.objects) {
-        const auto [intersection1, intersection2] = intersect_ray_sphere(ORIG, DIR, object);
-        if (intersection1 > t_min && intersection1 < t_max && intersection1 < closest_t) {
-          closest_t = intersection1;
-          closes_sphere = &object;
-        }
-        if (intersection2 > t_min && intersection2 < t_max && intersection2 < closest_t) {
-          closest_t = intersection2;
-          closes_sphere = &object;
-        }
-      }
+      const auto [closest_sphere, closest_t] = closest_intersection(ORIG, DIR, ctx.objects, t_min, t_max);
 
       // empty space
-      if (closes_sphere == nullptr) {
+      if (closest_sphere == nullptr) {
         continue;
       }
 
       // hier trifft der ray unser objekt
-      const auto &P = ORIG + DIR * closest_t;
+      const auto &P = ORIG + (DIR * closest_t);
       // vektor quasi rechtwinklig abgehend vom objekt
-      const auto N = P - closes_sphere->pos;
-      const auto &color = closes_sphere->color * compute_lighting(ctx.lights, P, N.norm(), -DIR, closes_sphere->specular);
+      const auto N = P - closest_sphere->pos;
+      const auto &color = closest_sphere->color * compute_lighting(ctx.lights, P, N.norm(), -DIR, closest_sphere->specular, ctx.objects);
 
       ctx.putPixelFct((double)x, (double)-y, color);
     }
@@ -91,34 +88,42 @@ double compute_lighting(const std::vector<Light> &lights,
   const Vector3d &P,
   const Vector3d &N,
   const Vector3d &V,
-  const double specular)
+  const double specular,
+  const std::vector<SceneObject>& objects)
 {
   double i = 0.0F;
   for (const auto &light : lights) {
     std::visit(
       [&](auto &&l) {
-        // Diffusion
         using T = std::decay_t<decltype(l)>;
-        Vector3d L; //NOLINT(misc-const-correctness)
         if constexpr (std::is_same_v<T, AmbientLight>) {
           i += l.intensity;
+          return;
         } else {
-          if constexpr (std::is_same_v<T, PointLight>) {
-            L = l.pos - P;
-          } else if constexpr (std::is_same_v<T, DirectionalLight>) {
-            L = l.direction;
+          const auto [L, t_max] = [&]() -> std::pair<Vector3d, double> {
+            if constexpr (std::is_same_v<T, PointLight>) {
+              return { l.pos - P, 1.0 };
+            } else {
+              return { l.direction, INFINITY };
+            }
+          }();
+
+          // Schatten
+          const auto [shadow_sphere, shadow_t] =
+            closest_intersection(P, L, objects, 0.001, t_max);
+          if (shadow_sphere != nullptr) {
+              return;
           }
 
+          // Diffusion
           const auto n_dot = N.dot(L);
           if (n_dot > 0.0) { i += l.intensity * n_dot / (N.length() * L.length()); }
 
           // Specular
-          if (specular < 0.0) { return; }
-
-          const auto &R = N * 2 * N.dot(L) - L;
+          const auto R = (N * (2 * N.dot(L))) - L;
           const auto r_dot_v = R.dot(V);
           if (r_dot_v > 0.F) {
-            i += l.intensity * std::pow(r_dot_v / R.length() * V.length(), specular); 
+            i += l.intensity * std::pow(r_dot_v / (R.length() * V.length()), specular);
           }
         }
       },
@@ -127,4 +132,23 @@ double compute_lighting(const std::vector<Light> &lights,
 
   return i;
 }
+
+std::pair<const SceneObject *, double> closest_intersection(const Vector3d &O, const Vector3d &D,  const std::vector<SceneObject> &objects,
+  const double t_min, const double t_max) {
+  auto closest_t = (double)INFINITY;
+  const SceneObject *closes_sphere = nullptr;
+  for (const auto &object : objects) {
+    const auto [intersection1, intersection2] = intersect_ray_sphere(O, D, object);
+    if (intersection1 > t_min && intersection1 < t_max && intersection1 < closest_t) {
+      closest_t = intersection1;
+      closes_sphere = &object;
+    }
+    if (intersection2 > t_min && intersection2 < t_max && intersection2 < closest_t) {
+      closest_t = intersection2;
+      closes_sphere = &object;
+    }
+  }
+  return { closes_sphere, closest_t };
+}
+
 // NOLINTEND(readability-identifier-length,bugprone-easily-swappable-parameters)
