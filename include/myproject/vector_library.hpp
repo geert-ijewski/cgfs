@@ -11,6 +11,7 @@ struct Vector3d
   Vector3d(double x, double y, double z)
     : x(x), y(y), z(z)
   {}
+  Vector3d() : x(0.F), y(0.F), z(0.F) {}
 
 
   Vector3d operator+(const Vector3d &other) const { return Vector3d(x + other.x, y + other.y, z + other.z); }
@@ -34,6 +35,7 @@ struct Vector3d
     return Vector3d(x * factor, y * factor, z * factor);
   }
 
+  Vector3d operator-() const { return Vector3d(-x, -y, -z); }
 
   Vector3d operator/(const double factor) const { return *this * (1.0 / factor); }
 

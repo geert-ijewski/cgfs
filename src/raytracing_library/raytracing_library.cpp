@@ -16,8 +16,13 @@ std::pair<double, double>
  * @param lights Alle Lichter der Szene
  * @param P der Punkt
  * @param N vector abgehend von der oberflaeche des Objekts
+ * @param V der vektor in die kamera, also wie stark das Licht in unser Auge rein reflektiert
+ * @param specular Wie glaenzend das Objekt ist
  */
-double compute_lighting(const std::vector<Light> &lights, const Vector3d &P, const Vector3d &N);
+double compute_lighting(const std::vector<Light> &lights,
+  const Vector3d &P,
+  const Vector3d &N, const Vector3d &V,
+  const double specular);
 
 
 void raytrace(const RaytracingContext& ctx) { 
@@ -30,6 +35,7 @@ void raytrace(const RaytracingContext& ctx) {
       // map canvas (pixel) coordinates to viewport coordinates
       const auto v_x = (double)x * ((double)V_w / (double)ctx.width);
       const auto v_y = (double)y * ((double)V_h / (double)ctx.height);
+      // Der Punkt den wir gerade anschauen wollen
       const auto DIR = Vector3d(v_x, v_y, 1.F);
 
       const auto t_min = 1.F;
@@ -53,10 +59,12 @@ void raytrace(const RaytracingContext& ctx) {
       if (closes_sphere == nullptr) {
         continue;
       }
-      // draw using canvas pixel coordinates (centered)
+
+      // hier trifft der ray unser objekt
       const auto &P = ORIG + DIR * closest_t;
+      // vektor quasi rechtwinklig abgehend vom objekt
       const auto N = P - closes_sphere->pos;
-      const auto &color = closes_sphere->color * compute_lighting(ctx.lights, P, N.norm());
+      const auto &color = closes_sphere->color * compute_lighting(ctx.lights, P, N.norm(), -DIR, closes_sphere->specular);
 
       ctx.putPixelFct((double)x, (double)-y, color);
     }
@@ -76,27 +84,42 @@ std::pair<double, double>
   const auto discriminant = (b * b) - (4 * a * c);
   if (discriminant < 0) { return { INFINITY, INFINITY }; }
 
-  return { (-b + sqrt(discriminant)) / 2 * a, (-b - sqrt(discriminant)) / 2 * a };
+  return { (-b + sqrt(discriminant)) / (2 * a), (-b - sqrt(discriminant)) / (2 * a) };
 }
 
-
-double compute_lighting(const std::vector<Light> &lights, const Vector3d &P, const Vector3d &N)
+double compute_lighting(const std::vector<Light> &lights,
+  const Vector3d &P,
+  const Vector3d &N,
+  const Vector3d &V,
+  const double specular)
 {
   double i = 0.0F;
   for (const auto &light : lights) {
     std::visit(
       [&](auto &&l) {
+        // Diffusion
         using T = std::decay_t<decltype(l)>;
+        Vector3d L; //NOLINT(misc-const-correctness)
         if constexpr (std::is_same_v<T, AmbientLight>) {
           i += l.intensity;
-        } else if constexpr (std::is_same_v<T, PointLight>) {
-          const auto L = l.pos - P;
+        } else {
+          if constexpr (std::is_same_v<T, PointLight>) {
+            L = l.pos - P;
+          } else if constexpr (std::is_same_v<T, DirectionalLight>) {
+            L = l.direction;
+          }
+
           const auto n_dot = N.dot(L);
           if (n_dot > 0.0) { i += l.intensity * n_dot / (N.length() * L.length()); }
-        } else if constexpr (std::is_same_v<T, DirectionalLight>) {
-          const auto L = l.direction;
-          const auto n_dot = N.dot(L);
-          if (n_dot > 0.0) { i += l.intensity * n_dot / (N.length() * L.length()); }
+
+          // Specular
+          if (specular < 0.0) { return; }
+
+          const auto &R = N * 2 * N.dot(L) - L;
+          const auto r_dot_v = R.dot(V);
+          if (r_dot_v > 0.F) {
+            i += l.intensity * std::pow(r_dot_v / R.length() * V.length(), specular); 
+          }
         }
       },
       light);

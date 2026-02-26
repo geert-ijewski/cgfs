@@ -19,8 +19,9 @@ struct SceneObject
   Vector3d pos;
   double radius;
   Color color;
+  double specular;
   std::string name;
-  SceneObject(Vector3d pos_, double radius_, Color color_, std::string name_) : pos(pos_), radius(radius_), color(color_), name(name_) {}
+  SceneObject(Vector3d pos_, double radius_, Color color_, double specular, std::string name_) : pos(pos_), radius(radius_), color(color_), specular(specular), name(name_) {}
 };
 
 struct AmbientLight

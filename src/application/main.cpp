@@ -40,10 +40,14 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
 
   const auto& raytracingCtx = new RaytracingContext();
 
-  const int COLOR = 128;
-  raytracingCtx->objects.emplace_back(Vector3d(0, -1, 3), 1.F, Color(COLOR, 0, 0), std::string("rot"));
-  raytracingCtx->objects.emplace_back(Vector3d(2, 0, 4), 1.F, Color(0, 0, COLOR), std::string("blau"));
-  raytracingCtx->objects.emplace_back(Vector3d(-2, 0, 4), 1.F, Color(0, COLOR, 0), std::string("gruen"));
+  const int COLOR = 255;
+  const double SHINY = 500.F;
+  const double SOMEWHAT_SHINY = 10.F;
+  const double VERY_SHINY = 1000.F;
+  raytracingCtx->objects.emplace_back(Vector3d(0, -1, 3), 1.F, Color(COLOR, 0, 0), SHINY, std::string("rot"));
+  raytracingCtx->objects.emplace_back(Vector3d(2, 0, 4), 1.F, Color(0, 0, COLOR), SHINY, std::string("blau"));
+  raytracingCtx->objects.emplace_back(Vector3d(-2, 0, 4), 1.F, Color(0, COLOR, 0), SOMEWHAT_SHINY, std::string("gruen"));
+  raytracingCtx->objects.emplace_back(Vector3d(0, -5001, 0), 5000.F, Color(COLOR, COLOR, 0), VERY_SHINY, std::string("gelb"));//NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   const int16_t CANVAS_HEIGHT = WINDOW_HEIGHT;
   const int16_t CANVAS_WIDTH = WINDOW_WIDTH;
   raytracingCtx->height = CANVAS_HEIGHT;
