@@ -50,7 +50,6 @@ void raytrace(const RaytracingContext& ctx) {
   const auto V_h = 1;
   const auto V_w = 1;
 
-  const auto ORIG = Vector3d(0.F, 0.F, 0.F);
   for (auto y = (int16_t)(- ctx.height / 2); y < ctx.height / 2; y++) {
     for (auto x = (int16_t)(- ctx.width / 2); x < ctx.width / 2; x++) {
       // map canvas (pixel) coordinates to viewport coordinates
@@ -63,9 +62,9 @@ void raytrace(const RaytracingContext& ctx) {
       const auto t_max = (double)INFINITY;
 
       const auto MAX_RECURSION_DEPTH = 3;
-      const auto color = trace_ray(ORIG, DIR, t_min, t_max, ctx.objects, ctx.lights, MAX_RECURSION_DEPTH);
+      const auto color = trace_ray(ctx.cameraPosition, DIR, t_min, t_max, ctx.objects, ctx.lights, MAX_RECURSION_DEPTH);
 
-      ctx.putPixelFct((double)x, (double)-y, color);
+      ctx.putPixel((double)x, (double)-y, color);
     }
   }
 }

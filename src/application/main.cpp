@@ -38,21 +38,21 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
 
   last_time = SDL_GetTicks();
 
-  const auto& raytracingCtx = new RaytracingContext();
+  const auto &raytracingCtx = new RaytracingContext();
 
   const int COLOR = 255;
   const double SHINY = 500.F;
   const double SOMEWHAT_SHINY = 10.F;
   const double VERY_SHINY = 1000.F;
-  raytracingCtx->objects.emplace_back(Vector3d(0, -1, 3), 1.F, Color(COLOR, 0, 0), SHINY, std::string("rot"), 0.2F);//NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  raytracingCtx->objects.emplace_back(Vector3d(2, 0, 4), 1.F, Color(0, 0, COLOR), SHINY, std::string("blau"), 0.3F);//NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  raytracingCtx->objects.emplace_back(Vector3d(-2, 0, 4), 1.F, Color(0, COLOR, 0), SOMEWHAT_SHINY, std::string("gruen"), 0.4F);//NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  raytracingCtx->objects.emplace_back(Vector3d(0, -5001, 0), 5000.F, Color(COLOR, COLOR, 0), VERY_SHINY, std::string("gelb"), 0.5F);//NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+  raytracingCtx->objects.emplace_back(Vector3d(0, -1, 3),1.F, Color(COLOR, 0, 0), SHINY, std::string("rot"),0.2F);// NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+  raytracingCtx->objects.emplace_back(Vector3d(2, 0, 4), 1.F, Color(0, 0, COLOR), SHINY, std::string("blau"),0.3F);// NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+  raytracingCtx->objects.emplace_back(Vector3d(-2, 0, 4), 1.F, Color(0, COLOR, 0), SOMEWHAT_SHINY, std::string("gruen"),0.4F);// NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+  raytracingCtx->objects.emplace_back(Vector3d(0, -5001, 0), 5000.F, Color(COLOR, COLOR, 0), VERY_SHINY, std::string("gelb"), 0.5F);// NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   const int16_t CANVAS_HEIGHT = WINDOW_HEIGHT;
   const int16_t CANVAS_WIDTH = WINDOW_WIDTH;
   raytracingCtx->height = CANVAS_HEIGHT;
   raytracingCtx->width = CANVAS_WIDTH;
-  raytracingCtx->putPixelFct = [](double x, double y, Color color) {// NOLINT(bugprone-easily-swappable-parameters)
+  raytracingCtx->putPixel = [](double x, double y, Color color) {// NOLINT(bugprone-easily-swappable-parameters)
     const auto s_x = (CANVAS_WIDTH / 2.F) + x;
     const auto s_y = (CANVAS_HEIGHT / 2.F) + y;
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, SDL_ALPHA_OPAQUE);
@@ -65,15 +65,24 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
   raytracingCtx->lights.emplace_back(DirectionalLight(INTENSITY1, Vector3d(1, 4, 4)));
   *appstate = (void *)raytracingCtx;// cppcheck-suppress[cstyleCast]
 
-  return SDL_APP_CONTINUE; /* carry on with the program! */
+  return SDL_APP_CONTINUE;
 }
 
 /* This function runs when a new event (mouse input, keypresses, etc) occurs. */
 SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) // cppcheck-suppress[constParameterCallback]
 {
-  (void)appstate;
-  if (event->type == SDL_EVENT_QUIT) { return SDL_APP_SUCCESS; /* end the program, reporting success to the OS. */ }
-  return SDL_APP_CONTINUE; /* carry on with the program! */
+  auto *const context = reinterpret_cast<RaytracingContext*>(appstate); //NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+  if (event->type == SDL_EVENT_QUIT) {
+    return SDL_APP_SUCCESS; /* end the program, reporting success to the OS. */
+  } else if (event->type == SDL_EVENT_KEY_DOWN) {
+    const double MOVEMENT = 0.1;
+    if (event->key.key == SDLK_A || event->key.key == SDLK_LEFT) { context->cameraPosition.x -= MOVEMENT; }
+    if (event->key.key == SDLK_D || event->key.key == SDLK_RIGHT) { context->cameraPosition.x += MOVEMENT; }
+    if (event->key.key == SDLK_S || event->key.key == SDLK_DOWN) { context->cameraPosition.y -= MOVEMENT; }
+    if (event->key.key == SDLK_W || event->key.key == SDLK_UP) { context->cameraPosition.y += MOVEMENT; }
+
+  }
+  return SDL_APP_CONTINUE;
 }
 
 /* This function runs once per frame, and is the heart of the program. */

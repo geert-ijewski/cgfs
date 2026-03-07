@@ -91,14 +91,15 @@ struct DirectionalLight
 
 using Light = std::variant<AmbientLight, PointLight, DirectionalLight>;
 
-typedef void (*PutPixel)(double x, double y, Color color);
+typedef void (*PutPixelFct)(double x, double y, Color color);
 struct RaytracingContext
 {
   std::vector<SceneObject> objects;
   std::vector<Light> lights;
-  PutPixel putPixelFct = nullptr;
+  PutPixelFct putPixel = nullptr;
   double height = 0;
   double width = 0;
+  Vector3d cameraPosition = Vector3d(0.F, 0.F, 0.F);
 };
 
 void raytrace(const RaytracingContext &ctx);
