@@ -15,3 +15,10 @@ target_link_system_libraries(
   PRIVATE)
 
 target_include_directories(application PRIVATE "${CMAKE_BINARY_DIR}/configured_files/include")
+
+if(EMSCRIPTEN)
+  myproject_configure_wasm_target(intro
+    TITLE "Raytracer"
+    DESCRIPTION "Raytracer with fixed scene"
+  )
+endif()
