@@ -38,10 +38,11 @@ Vector3d reflect_ray(const Vector3d& R, const Vector3d& N);
 
 Color trace_ray(const Vector3d &O,
   const Vector3d &D,
-  double t_min,
-  double t_max,
+  const double t_min,
+  const double t_max,
   const std::vector<SceneObject> &objects,
-  const std::vector<Light> &lights);
+  const std::vector<Light> &lights,
+  const uint8_t recursionDepth);
 
 
 
@@ -61,14 +62,15 @@ void raytrace(const RaytracingContext& ctx) {
       const auto t_min = 1.F;
       const auto t_max = (double)INFINITY;
 
-      const auto color = trace_ray(ORIG, DIR, t_min, t_max, ctx.objects, ctx.lights);
+      const auto MAX_RECURSION_DEPTH = 3;
+      const auto color = trace_ray(ORIG, DIR, t_min, t_max, ctx.objects, ctx.lights, MAX_RECURSION_DEPTH);
 
       ctx.putPixelFct((double)x, (double)-y, color);
     }
   }
 }
 
-Color trace_ray(const Vector3d& O, const Vector3d& D, double t_min, double t_max, const std::vector<SceneObject>& objects, const std::vector<Light>& lights) {
+Color trace_ray(const Vector3d& O, const Vector3d& D, const double t_min, const double t_max, const std::vector<SceneObject>& objects, const std::vector<Light>& lights, const uint8_t recursionDepth) {
   const auto [closest_sphere, closest_t] = closest_intersection(O, D, objects, t_min, t_max);
 
   // empty space
@@ -78,10 +80,16 @@ Color trace_ray(const Vector3d& O, const Vector3d& D, double t_min, double t_max
   const auto &P = O + (D * closest_t);
   // vektor quasi rechtwinklig abgehend vom objekt
   const auto N = P - closest_sphere->pos;
-  const auto &color =
+  const auto &local_color =
     closest_sphere->color * compute_lighting(lights, P, N.norm(), -D, closest_sphere->specular, objects);
 
-  return color;
+  const auto &reflectivness = closest_sphere->reflective;
+  if (recursionDepth == 0 || reflectivness == 0.0F) { return local_color; }
+
+  const auto &R = reflect_ray(-D, N);
+  const auto MIN_DIST_REFLECTION = 0.0001; // das objekt soll sich nicht selbst reflektieren
+  const auto &reflectedColor = trace_ray(P, R, MIN_DIST_REFLECTION, INFINITY, objects, lights, recursionDepth - 1);
+  return local_color * (1 - reflectivness) + reflectedColor * reflectivness;
 }
 
 std::pair<double, double>

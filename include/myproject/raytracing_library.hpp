@@ -33,6 +33,22 @@ struct Color
 
     return Color(clamp_to_uint8(rr), clamp_to_uint8(gg), clamp_to_uint8(bb));
   }
+
+  Color operator+(const Color &other) const
+  {
+    auto clamp_to_uint8 = [](double v) -> uint8_t {
+      if (std::isnan(v)) v = 0.0;
+      if (v < 0.0) v = 0.0;
+      if (v > 255.0) v = 255.0;
+      return static_cast<uint8_t>(std::lround(v));
+    };
+
+    double rr = static_cast<double>(r) + static_cast<double>(other.r);
+    double gg = static_cast<double>(g) + static_cast<double>(other.g);
+    double bb = static_cast<double>(b) + static_cast<double>(other.b);
+
+    return Color(clamp_to_uint8(rr), clamp_to_uint8(gg), clamp_to_uint8(bb));
+  }
 };
 
 struct SceneObject
