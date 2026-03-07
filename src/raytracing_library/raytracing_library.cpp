@@ -9,6 +9,7 @@
 
 
 // NOLINTBEGIN(readability-identifier-length,bugprone-easily-swappable-parameters)
+const auto BACKGROUND_COLOR = Color(0, 0, 0);
 
 std::pair<double, double> intersect_ray_sphere(const Vector3d &ORIG, const Vector3d &DIR, const SceneObject &sphere);
 
@@ -33,6 +34,16 @@ double compute_lighting(const std::vector<Light> &lights,
   const double specular,
   const std::vector<SceneObject> &objects);
 
+Vector3d reflect_ray(const Vector3d& R, const Vector3d& N);
+
+Color trace_ray(const Vector3d &O,
+  const Vector3d &D,
+  double t_min,
+  double t_max,
+  const std::vector<SceneObject> &objects,
+  const std::vector<Light> &lights);
+
+
 
 void raytrace(const RaytracingContext& ctx) { 
   const auto V_h = 1;
@@ -50,22 +61,27 @@ void raytrace(const RaytracingContext& ctx) {
       const auto t_min = 1.F;
       const auto t_max = (double)INFINITY;
 
-      const auto [closest_sphere, closest_t] = closest_intersection(ORIG, DIR, ctx.objects, t_min, t_max);
-
-      // empty space
-      if (closest_sphere == nullptr) {
-        continue;
-      }
-
-      // hier trifft der ray unser objekt
-      const auto &P = ORIG + (DIR * closest_t);
-      // vektor quasi rechtwinklig abgehend vom objekt
-      const auto N = P - closest_sphere->pos;
-      const auto &color = closest_sphere->color * compute_lighting(ctx.lights, P, N.norm(), -DIR, closest_sphere->specular, ctx.objects);
+      const auto color = trace_ray(ORIG, DIR, t_min, t_max, ctx.objects, ctx.lights);
 
       ctx.putPixelFct((double)x, (double)-y, color);
     }
   }
+}
+
+Color trace_ray(const Vector3d& O, const Vector3d& D, double t_min, double t_max, const std::vector<SceneObject>& objects, const std::vector<Light>& lights) {
+  const auto [closest_sphere, closest_t] = closest_intersection(O, D, objects, t_min, t_max);
+
+  // empty space
+  if (closest_sphere == nullptr) { return BACKGROUND_COLOR; }
+
+  // hier trifft der ray unser objekt
+  const auto &P = O + (D * closest_t);
+  // vektor quasi rechtwinklig abgehend vom objekt
+  const auto N = P - closest_sphere->pos;
+  const auto &color =
+    closest_sphere->color * compute_lighting(lights, P, N.norm(), -D, closest_sphere->specular, objects);
+
+  return color;
 }
 
 std::pair<double, double>
@@ -150,5 +166,7 @@ std::pair<const SceneObject *, double> closest_intersection(const Vector3d &O, c
   }
   return { closes_sphere, closest_t };
 }
+
+Vector3d reflect_ray(const Vector3d& R, const Vector3d& N) { return N * 2 * N.dot(R) - R; }
 
 // NOLINTEND(readability-identifier-length,bugprone-easily-swappable-parameters)

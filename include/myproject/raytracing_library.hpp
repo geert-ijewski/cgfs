@@ -11,7 +11,7 @@
 struct Color
 {
   uint8_t r, g, b;
-  Color(uint8_t r, uint8_t g, uint8_t b) : r(r), g(g), b(b) {}
+  Color(uint8_t r, uint8_t g, uint8_t b) noexcept : r(r), g(g), b(b) {}
 
   /**
   * Multiply each channel (r,g,b) by the given intensity (double).
@@ -42,27 +42,35 @@ struct SceneObject
   Color color;
   double specular;
   std::string name;
-  SceneObject(Vector3d pos_, double radius_, Color color_, double specular, std::string name_) : pos(pos_), radius(radius_), color(color_), specular(specular), name(name_) {}
+  double reflective;
+  SceneObject(Vector3d pos_,
+    double radius_,
+    Color color_,
+    double specular,
+    std::string name_,
+    double reflective) noexcept
+    : pos(pos_), radius(radius_), color(color_),
+      specular(specular), name(name_), reflective(reflective) {}
 };
 
 struct AmbientLight
 {
   double intensity;
-  explicit AmbientLight(double intensity_) : intensity(intensity_) {}
+  explicit AmbientLight(double intensity_) noexcept : intensity(intensity_) {}
 };
 
 struct PointLight
 {
   double intensity;
   Vector3d pos;
-  PointLight(double intensity_, Vector3d pos_) : intensity(intensity_), pos(pos_) {}
+  PointLight(double intensity_, Vector3d pos_) noexcept : intensity(intensity_), pos(pos_) {}
 };
 
 struct DirectionalLight
 {
   double intensity;
   Vector3d direction;
-  DirectionalLight(double intensity_, Vector3d direction_) : intensity(intensity_), direction(direction_) {}
+  DirectionalLight(double intensity_, Vector3d direction_) noexcept : intensity(intensity_), direction(direction_) {}
 };
 
 using Light = std::variant<AmbientLight, PointLight, DirectionalLight>;
