@@ -41,20 +41,20 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
   const auto &raytracingCtx = new RaytracingContext();
 
   const int COLOR = 255;
-  const double SHINY = 500.F;
-  const double SOMEWHAT_SHINY = 10.F;
-  const double VERY_SHINY = 1000.F;
-  raytracingCtx->objects.emplace_back(Vector3d(0, -1, 3),1.F, Color(COLOR, 0, 0), SHINY, std::string("rot"),0.2F);// NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  raytracingCtx->objects.emplace_back(Vector3d(2, 0, 4), 1.F, Color(0, 0, COLOR), SHINY, std::string("blau"),0.3F);// NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  raytracingCtx->objects.emplace_back(Vector3d(-2, 0, 4), 1.F, Color(0, COLOR, 0), SOMEWHAT_SHINY, std::string("gruen"),0.4F);// NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  raytracingCtx->objects.emplace_back(Vector3d(0, -5001, 0), 5000.F, Color(COLOR, COLOR, 0), VERY_SHINY, std::string("gelb"), 0.5F);// NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+  const double SHINY = 500.0;
+  const double SOMEWHAT_SHINY = 10.0;
+  const double VERY_SHINY = 1000.0;
+  raytracingCtx->objects.emplace_back(Vector3d(0, -1, 3), 1.0, Color(COLOR, 0, 0), SHINY, std::string("rot"),0.2);// NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+  raytracingCtx->objects.emplace_back(Vector3d(2, 0, 4), 1.0, Color(0, 0, COLOR), SHINY, std::string("blau"),0.3);// NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+  raytracingCtx->objects.emplace_back(Vector3d(-2, 0, 4), 1.0, Color(0, COLOR, 0), SOMEWHAT_SHINY, std::string("gruen"),0.4);// NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+  raytracingCtx->objects.emplace_back(Vector3d(0, -5001, 0), 5000.0, Color(COLOR, COLOR, 0), VERY_SHINY, std::string("gelb"), 0.5);// NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   const int16_t CANVAS_HEIGHT = WINDOW_HEIGHT;
   const int16_t CANVAS_WIDTH = WINDOW_WIDTH;
   raytracingCtx->height = CANVAS_HEIGHT;
   raytracingCtx->width = CANVAS_WIDTH;
   raytracingCtx->putPixel = [](double x, double y, Color color) {// NOLINT(bugprone-easily-swappable-parameters)
-    const auto s_x = (CANVAS_WIDTH / 2.F) + x;
-    const auto s_y = (CANVAS_HEIGHT / 2.F) + y;
+    const auto s_x = (CANVAS_WIDTH / 2.0) + x;
+    const auto s_y = (CANVAS_HEIGHT / 2.0) + y;
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, SDL_ALPHA_OPAQUE);
     SDL_RenderPoint(renderer, (float)s_x, (float)s_y);
   };

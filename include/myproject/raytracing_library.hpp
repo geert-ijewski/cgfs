@@ -99,7 +99,7 @@ struct RaytracingContext
   PutPixelFct putPixel = nullptr;
   double height = 0;
   double width = 0;
-  Vector3d cameraPosition = Vector3d(0.F, 0.F, 0.F);
+  Vector3d cameraPosition = Vector3d(0.0, 0.0, 0.0);
 };
 
 void raytrace(const RaytracingContext &ctx);
