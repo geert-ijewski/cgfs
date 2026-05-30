@@ -1,4 +1,5 @@
 add_subdirectory(vector_library)
+add_subdirectory(threadpool_library)
 add_subdirectory(raytracing_library)
 
 add_subdirectory(application)

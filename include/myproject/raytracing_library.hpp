@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <cmath>
 #include <myproject/vector_library.hpp>
+#include <myproject/threadpool_library.hpp>
 
 struct Color
 {

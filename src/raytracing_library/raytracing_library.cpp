@@ -4,8 +4,14 @@
 #include <variant>
 #include <vector>
 #include <type_traits>
+#include <thread>
+#include <chrono>
+#include <memory>
+#include <map>
+#include <mutex>
 #include <myproject/vector_library.hpp>
 #include <myproject/raytracing_library.hpp>
+#include <myproject/threadpool_library.hpp>
 
 
 // NOLINTBEGIN(readability-identifier-length,bugprone-easily-swappable-parameters)
@@ -46,27 +52,48 @@ Color trace_ray(const Vector3d &O,
 
 
 
-void raytrace(const RaytracingContext& ctx) { 
+void raytrace(const RaytracingContext& ctx) {
   const auto V_h = 1;
   const auto V_w = 1;
+  std::map<std::shared_ptr<RayTraceWorkItem>, Color> output;
+  std::mutex output_mutex;
+
+  Threadpool threadpool([&](const std::shared_ptr<RayTraceWorkItem>& workItem) {// NOLINT(bugprone-exception-escape)
+    // map canvas (pixel) coordinates to viewport coordinates
+    const auto v_x = (double)workItem->x * ((double)V_w / (double)ctx.width);
+    const auto v_y = (double)workItem->y * ((double)V_h / (double)ctx.height);
+    // Der Punkt den wir gerade anschauen wollen
+    const auto DIR = Vector3d(v_x, v_y, 1.0).norm();
+
+    const auto t_min = 1.0;
+    const auto t_max = (double)INFINITY;
+
+    const auto MAX_RECURSION_DEPTH = 3;
+    const auto color = trace_ray(ctx.cameraPosition,
+      DIR,
+      t_min,
+      t_max,
+      ctx.objects,
+      ctx.lights,
+      MAX_RECURSION_DEPTH);
+    {
+      const std::scoped_lock<std::mutex> lock(output_mutex);
+      output.emplace(workItem, color);
+    }
+   });
 
   for (auto y = (int16_t)(- ctx.height / 2); y < ctx.height / 2; y++) {
-    for (auto x = (int16_t)(- ctx.width / 2); x < ctx.width / 2; x++) {
-      // map canvas (pixel) coordinates to viewport coordinates
-      const auto v_x = (double)x * ((double)V_w / (double)ctx.width);
-      const auto v_y = (double)y * ((double)V_h / (double)ctx.height);
-      // Der Punkt den wir gerade anschauen wollen
-      const auto DIR = Vector3d(v_x, v_y, 1.0).norm();
-
-      const auto t_min = 1.0;
-      const auto t_max = (double)INFINITY;
-
-      const auto MAX_RECURSION_DEPTH = 3;
-      const auto color = trace_ray(ctx.cameraPosition, DIR, t_min, t_max, ctx.objects, ctx.lights, MAX_RECURSION_DEPTH);
-
-      ctx.putPixel((double)x, (double)-y, color);
+    for (auto x = (int16_t)(-ctx.width / 2); x < ctx.width / 2; x++) {
+        threadpool.addWorkItem(std::make_shared<RayTraceWorkItem>(x, y));
     }
   }
+
+  // Warten bis alles abgearbeitet ist
+  while (threadpool.hasWork()) { std::this_thread::sleep_for(std::chrono::milliseconds(1)); }
+  for (const auto& i : output) { 
+      ctx.putPixel((double)i.first->x, (double)-i.first->y, i.second);
+  }
+  
 }
 
 Color trace_ray(const Vector3d& O, const Vector3d& D, const double t_min, const double t_max, const std::vector<SceneObject>& objects, const std::vector<Light>& lights, const uint8_t recursionDepth) {
